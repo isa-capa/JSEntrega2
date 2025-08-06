@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar col-md-2 d-md-block collapse" id="sidebar">
+            <div class="p-3">
+                <h4 class="text-white">Flight Management</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('dashboard')">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('newFlight')">New Flight</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('newQuote')">New Quote</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('editFlights')">Edit Flights</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Encabezado -->
+        <div class="flex-grow-1 p-3">
+            <nav class="navbar navbar-expand-md navbar-light bg-light mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Flight System</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Dashboard -->
+            <div id="dashboard" class="section">
+                <h2>Dashboard</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Today's Flights</h5>
+                                <p class="card-text" id="todaysFlights">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Pending Confirmations</h5>
+                                <p class="card-text" id="pendingConfirmations">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Flights</h5>
+                                <p class="card-text" id="totalFlights">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <h3>Today's Flights</h3>
+                <div class="mb-3">
+                    <label>Filter by:</label>
+                    <select class="form-select d-inline w-auto" id="filterType" onchange="filterFlights()">
+                        <option value="all">All</option>
+                        <option value="date">Date</option>
+                        <option value="airport">Airport</option>
+                        <option value="confirmation">Confirmation</option>
+                    </select>
+                    <input type="date" id="filterDate" class="form-control d-inline w-auto" style="display:none;" onchange="filterFlights()">
+                    <select id="filterAirport" class="form-select d-inline w-auto" style="display:none;">
+                        <option value="CHM">CHM</option>
+                        <option value="PVR">PVR</option> 
+                        <option value="GDL">GDL</option>
+                        <option value="ZLO">ZLO</option>
+                    </select>
+                    <select id="filterConfirmation" class="form-select d-inline w-auto" style="display:none;">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Passengers</th>
+                                <th>Agent</th>
+                                <th>Flight Date</th>
+                                <th>Airport</th>
+                                <th>Confirmation</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flightTable"></tbody>
+                    </table>
+                </div>
+                <h3>Quotations</h3>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>Service Type</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quoteTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- New Flight Form / Formulario para crear un nuevo intnerario de vuelo -->
+            <div id="newFlight" class="section" style="display:none;">
+                <h2>New Flight</h2>
+                <form id="flightForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="passengerNames">Passenger Names</label>
+                            <input type="text" class="form-control" id="passengerNames" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="agent">Agent</label>
+                            <input type="text" class="form-control" id="agent" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="ad">A/D</label>
+                            <select class="form-select" id="ad">
+                                <option value="Arrival">Arrival</option>
+                                <option value="Departure">Departure</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="flightDate">Flight Date</label>
+                            <input type="date" class="form-control" id="flightDate" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="flightTime">Flight Time</label>
+                            <input type="time" class="form-control" id="flightTime" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="airport">Airport</label>
+                            <select class="form-select" id="airport">
+                                <option value="CHM">CHM</option>
+                                <option value="PVR">PVR</option>
+                                <option value="GDL">GDL</option>
+                                <option value="ZLO">ZLO</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="sharedType">Shared Type</label>
+                            <select class="form-select" id="sharedType">
+                                <option value="Suit">Suite</option>
+                                <option value="Shared">Shared</option>
+                                <option value="Private">Private</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="plane">Plane</label>
+                            <select class="form-select" id="plane">
+                                <option value="Saratoga">Piper Saratoga</option>
+                                <option value="Pilatus">Pilatus</option>
+                                <!-- <option value="Piper">Piper</option> -->
+                                <option value="Duber Quest">Kodiak Quest</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="flightNumberPVR">Flight Number Commercial</label>
+                            <input type="text" class="form-control" id="flightNumberPVR">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="flightTimePVR">Flight Time Commercial</label>
+                            <input type="time" class="form-control" id="flightTimePVR">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="flightOrigin">Flight Origin</label>
+                            <select class="form-select" id="flightOrigin">
+                                <option value="CHM">CHM</option>
+                                <option value="PVR">PVR</option>
+                                <option value="GDL">GDL</option>
+                                <option value="ZLO">ZLO</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="pax">Pax</label>
+                            <input type="number" class="form-control" id="pax" min="1" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="seats">Seats</label>
+                            <input type="number" class="form-control" id="seats" min="1" required>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Dividir pax entre seats-->
+                            <label for="loadFactor">Load Factor (%)</label>
+                            <input type="number" class="form-control" id="loadFactor" min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="passengers">Passengers</label>
+                            <input type="text" class="form-control" id="passengers">
+                        </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="quote">Quote</label>
+                            <input type="text" class="form-control" id="quote" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="tripSheet">Trip Sheet (confirmation Aerotron)</label>
+                            <input type="text" class="form-control" id="tripSheet" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="key">Key (confirmation Tamarindo)</label>
+                            <select class="form-select" id="key">
+                                <option value="x">Yes</option>
+                                <option value="o">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="notes">Notes</label>
+                            <textarea class="form-control" id="notes" rows="4"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Ocultar para el MVP ()
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="roomRevenue">Room Revenue</label>
+                            <input type="number" class="form-control" id="roomRevenue" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="additionalRevenue">Additional Revenue</label>
+                            <input type="number" class="form-control" id="additionalRevenue" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="mkt">MKT</label>
+                            <select class="form-select" id="mkt">
+                                <option value="PCL">PCL</option>
+                                <option value="RAC">RAC</option>
+                                <option value="CMP">CMP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="chn">CHN</label>
+                            <select class="form-select" id="chn">
+                                <option value="EM">EM</option>
+                                <option value="Web">Web</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="airRevenue">Air Revenue</label>
+                            <input type="number" class="form-control" id="airRevenue" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="marcoCost">Marco Cost</label>
+                            <input type="number" class="form-control" id="marcoCost" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="prl">PRL</label>
+                            <input type="number" class="form-control" id="prl" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="invoice">Invoice</label>
+                            <input type="number" class="form-control" id="invoice" min="0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="extraService">Extra Service</label>
+                            <input type="text" class="form-control" id="extraService">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="extraRevenue">Extra Revenue</label>
+                            <input type="number" class="form-control" id="extraRevenue" min="0" step="0.01">
+                        </div>
+                    </div> -->
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="confirmation">Confirmation</label>
+                            <select class="form-select" id="confirmation">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <h3>Guests</h3>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="guestNames">Guest Names (comma-separated)</label>
+                            <input type="text" class="form-control" id="guestNames" placeholder="e.g., Guest1, Guest2, Guest3">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Save Flight</button>
+                    <button type="button" class="btn btn-success mt-3" onclick="downloadFlightPDF()">Download PDF</button>
+                </form>
+            </div>
+
+            <!-- Formulario para crear una nueva cotizacion -->
+            <div id="newQuote" class="section" style="display:none;">
+                <h2>New Quote</h2>
+                <form id="quoteForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="quoteAgent">Agent</label>
+                            <input type="text" class="form-control" id="quoteAgent" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="serviceType">Service Type</label>
+                            <select class="form-select" id="serviceType" onchange="updateServiceFields()">
+                                <option value="Private Aviation">Private Aviation</option>
+                                <option value="Share Air Shuttle">Share Air Shuttle</option>
+                                <option value="Suit">Suite</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="passengerContainer">
+                        <div class="passenger-entry">
+                            <h5>Passenger</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="passengerName1">Passenger Name</label>
+                                    <input type="text" class="form-control" id="passengerName1" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="seat1">Seat</label>
+                                    <input type="number" class="form-control" id="seat1" min="1" required>
+                                </div>
+                            </div>
+                            <div id="serviceFields1"></div>
+                        </div>
+                    </div>
+                    <h4>Extras</h4>
+                    <div id="extrasContainer">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="extraType1">Extra Type</label>
+                                <select class="form-select" id="extraType1" onchange="updateExtraPrice(1)">
+                                    <option value="">Select Extra</option>
+                                    <option value="Veuve Clicquot">Veuve Clicquot ($245)</option>
+                                    <option value="Dom Perignon">Dom Perignon ($755)</option>
+                                    <option value="Ruinart Brut">Ruinart Brut ($295)</option>
+                                    <option value="Perier-Jouet">Perier-Jouet ($225)</option>
+                                    <option value="Extra Luggage">Extra Luggage ($45)</option>
+                                    <option value="Excess Weight">Excess Weight ($500)</option>
+                                </div>
+                            <div class="col-md-5">
+                                <label for="extraPrice1">Price</label>
+                                <input type="number" class="form-control" id="extraPrice1" readonly>
+                            </div>
+                            <div class="col-md-1">
+                                <label>&nbsp;</label>
+                                <button type="button" class="btn btn-danger btn-sm mt-1" onclick="deleteExtra(1)"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary mt-2" onclick="addExtra()">Add Extra</button>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label>Total Quote</label>
+                            <input type="text" class="form-control" id="totalQuote" readonly>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Save Quote</button>
+                    <button type="button" class="btn btn-success mt-3" onclick="downloadQuotePDF()">Download PDF</button>
+                </form>
+            </div>
+
+            <!-- Poder editar informacion de las tablas -->
+            <div id="editFlights" class="section" style="display:none;">
+                <h2>Edit Flights</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Passengers</th>
+                                <th>Agent</th>
+                                <th>Flight Date</th>
+                                <th>Airport</th>
+                                <th>Confirmation</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="editFlightTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="./js/script.js"></script>
+</body>
+</html>
