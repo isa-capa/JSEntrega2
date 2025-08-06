@@ -267,7 +267,7 @@ function updateServiceFields() {
                         <select class="form-select" id="planeType${i}" onchange="updatePrice(${i})">
                             <option value="Saratoga">Saratoga ($1990)</option>
                             <option value="Pilatus">Pilatus ($5500)</option>
-                            <option value="Piper">Piper ($2950)</option>
+                            <option value="Piper">Kodiak ($2990)</option>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -313,7 +313,7 @@ function updatePrice(index) {
     const price = document.getElementById(`price${index}`);
     if (planeType === 'Saratoga') price.value = 1990;
     else if (planeType === 'Pilatus') price.value = 5500;
-    else if (planeType === 'Piper') price.value = 2950;
+    else if (planeType === 'Piper') price.value = 2990;
     calculateTotalQuote();
 }
 
