@@ -4,7 +4,7 @@ let passengerCount = 1;
 let extraCount = 1;
 
 function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
@@ -14,6 +14,17 @@ function showSection(sectionId) {
     document.querySelectorAll('.section').forEach(section => {
         section.style.display = section.id === sectionId ? 'block' : 'none';
     });
+
+    // Update active class in sidebar
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+        const onClickAttr = link.getAttribute('onclick');
+        if (onClickAttr && onClickAttr.includes(`'${sectionId}'`)) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+
     if (sectionId === 'dashboard') updateDashboard();
     if (sectionId === 'editFlights') loadEditFlights();
 }
@@ -193,7 +204,7 @@ function editQuote(id) {
     document.getElementById('totalQuote').value = quote.total || '0.00';
 }
 
-document.getElementById('flightForm').addEventListener('submit', function(e) {
+document.getElementById('flightForm').addEventListener('submit', function (e) {
     e.preventDefault();
     const flight = {
         id: this.dataset.editId || generateUUID(),
@@ -236,8 +247,12 @@ function addPassenger() {
     const container = document.getElementById('passengerContainer');
     const div = document.createElement('div');
     div.className = 'passenger-entry';
+    div.id = `passengerEntry${passengerCount}`;
     div.innerHTML = `
-        <h5>Passenger ${passengerCount}</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+            <h5 class="m-0">Passenger ${passengerCount}</h5>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removePassenger(${passengerCount})"><i class="fas fa-user-minus me-1"></i> Remove</button>
+        </div>
         <div class="row">
             <div class="col-md-6">
                 <label for="passengerName${passengerCount}">Passenger Name</label>
@@ -252,6 +267,17 @@ function addPassenger() {
     `;
     container.appendChild(div);
     updateServiceFields();
+}
+
+function removePassenger(index) {
+    if (passengerCount <= 1) return;
+    const entry = document.getElementById(`passengerEntry${index}`);
+    if (entry) {
+        entry.remove();
+        // Note: passengerCount is not decremented to avoid ID collisions, 
+        // calculateTotalQuote will handle missing elements gracefully.
+        calculateTotalQuote();
+    }
 }
 
 function updateServiceFields() {
@@ -383,31 +409,45 @@ function deleteExtra(index) {
 
 function calculateTotalQuote() {
     let total = 0;
+    // Sum flight prices from all active passenger fields
     for (let i = 1; i <= passengerCount; i++) {
-        const price = document.getElementById(`price${i}`);
-        if (price && price.value) total += parseFloat(price.value);
+        const priceField = document.getElementById(`price${i}`);
+        if (priceField && priceField.value) {
+            total += parseFloat(priceField.value);
+        }
     }
+    // Sum extra prices
     for (let i = 1; i <= extraCount; i++) {
-        const extraPrice = document.getElementById(`extraPrice${i}`);
-        if (extraPrice && extraPrice.value) total += parseFloat(extraPrice.value);
+        const extraPriceField = document.getElementById(`extraPrice${i}`);
+        if (extraPriceField && extraPriceField.value) {
+            total += parseFloat(extraPriceField.value);
+        }
     }
     document.getElementById('totalQuote').value = total.toFixed(2);
 }
 
-document.getElementById('quoteForm').addEventListener('submit', function(e) {
+document.getElementById('quoteForm').addEventListener('submit', function (e) {
     e.preventDefault();
     const passengers = [];
     for (let i = 1; i <= passengerCount; i++) {
-        const name = document.getElementById(`passengerName${i}`).value;
-        const seat = document.getElementById(`seat${i}`).value;
+        const nameField = document.getElementById(`passengerName${i}`);
+        const seatField = document.getElementById(`seat${i}`);
+        if (!nameField || !seatField) continue; // Skip removed passengers
+
+        const name = nameField.value;
+        const seat = seatField.value;
         const price = document.getElementById(`price${i}`)?.value || 0;
         const planeType = document.getElementById(`planeType${i}`)?.value || '';
         passengers.push({ name, seat, planeType, price });
     }
     const extras = [];
     for (let i = 1; i <= extraCount; i++) {
-        const type = document.getElementById(`extraType${i}`).value;
-        const price = document.getElementById(`extraPrice${i}`).value;
+        const typeField = document.getElementById(`extraType${i}`);
+        const priceField = document.getElementById(`extraPrice${i}`);
+        if (!typeField || !priceField) continue; // Skip removed extras
+
+        const type = typeField.value;
+        const price = priceField.value;
         if (type && price) extras.push({ type, price });
     }
     const quote = {
@@ -429,8 +469,8 @@ document.getElementById('quoteForm').addEventListener('submit', function(e) {
     passengerCount = 1;
     extraCount = 1;
     document.getElementById('passengerContainer').innerHTML = `
-        <div class="passenger-entry">
-            <h5>Passenger 1</h5>
+        <div class="passenger-entry" id="passengerEntry1">
+            <h5 class="border-bottom pb-2 mb-3">Passenger 1</h5>
             <div class="row">
                 <div class="col-md-6">
                     <label for="passengerName1">Passenger Name</label>
@@ -445,7 +485,7 @@ document.getElementById('quoteForm').addEventListener('submit', function(e) {
         </div>
     `;
     document.getElementById('extrasContainer').innerHTML = `
-        <div class="row">
+        <div class="row mt-2">
             <div class="col-md-6">
                 <label for="extraType1">Extra Type</label>
                 <select class="form-select" id="extraType1" onchange="updateExtraPrice(1)">
@@ -458,9 +498,13 @@ document.getElementById('quoteForm').addEventListener('submit', function(e) {
                     <option value="Excess Weight">Excess Weight ($500)</option>
                 </select>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <label for="extraPrice1">Price</label>
                 <input type="number" class="form-control" id="extraPrice1" readonly>
+            </div>
+            <div class="col-md-1">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-danger btn-sm mt-1" onclick="deleteExtra(1)"><i class="fas fa-trash"></i></button>
             </div>
         </div>
     `;
@@ -482,18 +526,26 @@ function downloadQuotePDF() {
     doc.text('Passengers:', 10, y);
     y += 10;
     for (let i = 1; i <= passengerCount; i++) {
-        const name = document.getElementById(`passengerName${i}`).value;
-        const seat = document.getElementById(`seat${i}`).value;
+        const nameField = document.getElementById(`passengerName${i}`);
+        const seatField = document.getElementById(`seat${i}`);
+        if (!nameField || !seatField) continue;
+
+        const name = nameField.value;
+        const seat = seatField.value;
         const price = document.getElementById(`price${i}`)?.value || 0;
         const planeType = document.getElementById(`planeType${i}`)?.value || '';
-        doc.text(`Passenger ${i}: ${name}, Seat: ${seat}, Plane: ${planeType}, Price: $${price}`, 10, y);
+        doc.text(`Passenger: ${name}, Seat: ${seat}, Plane: ${planeType}, Price: $${price}`, 10, y);
         y += 10;
     }
     doc.text('Extras:', 10, y);
     y += 10;
     for (let i = 1; i <= extraCount; i++) {
-        const type = document.getElementById(`extraType${i}`).value;
-        const price = document.getElementById(`extraPrice${i}`).value;
+        const typeField = document.getElementById(`extraType${i}`);
+        const priceField = document.getElementById(`extraPrice${i}`);
+        if (!typeField || !priceField) continue;
+
+        const type = typeField.value;
+        const price = priceField.value;
         if (type && price) {
             doc.text(`${type}: $${price}`, 10, y);
             y += 10;
